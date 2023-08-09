@@ -202,3 +202,40 @@ resource "aws_api_gateway_deployment" "api" {
     aws_api_gateway_integration.api,
   ]
 }
+
+
+## Permissions Lambda
+resource "aws_iam_role" "lambda_role" {
+  name = "lambda-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Action = "sts:AssumeRole",
+      Effect = "Allow",
+      Principal = {
+        Service = "lambda.amazonaws.com"
+      }
+    }]
+  })
+}
+
+data "archive_file" "function_archive" {
+  type        = "zip"
+  source_file = local.binary_path
+  output_path = local.archive_path
+}
+
+## Lambda Function
+resource "aws_lambda_function" "function" {
+  function_name = local.function_name
+  description   = "Lambda function to get coffee requests"
+  role          = aws_iam_role.lambda_role.arn
+  handler       = local.function_name
+  memory_size   = 128
+
+  filename         = local.archive_path
+  source_code_hash = data.archive_file.function_archive.output_base64sha256
+
+  runtime = "go1.x"
+}

@@ -24,3 +24,55 @@ crash.log
 
 # Ignore any .terraform.lock.hcl files
 *.lock.hcl
+
+# Compiled Object files, Static and Dynamic libs (Shared Objects)
+*.o
+*.a
+*.so
+
+# Folders
+_obj
+_test
+
+# Architecture specific extensions/prefixes
+*.[568vq]
+
+# Test binary
+test
+
+# Output files
+*.exe
+*.out
+*.test
+
+# Project binaries
+/bin/
+/vendor/
+
+# Dependency directories (Glide, Godep, etc)
+/vendor/
+/Godeps/
+/_workspace/
+
+# 3rd party dependencies
+/vendor/
+/vendor.conf
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs and Dumps
+*.log
+*.log.*
+*.crash
+*.core
+
+# Build process
+/build/

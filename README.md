@@ -7,7 +7,13 @@ Project to test integration between API Gateway + SQS + Lambda
 - API Gateway
 - SQS Queue
 - Roles/Policies
-- Lambda
+- Lambda - Golang
+
+## Create Bynaries
+
+``` bash
+cd app;; $Env:GOOS = "linux";; go build -o ./tf_generated/coffee-shop-lambda
+```
 
 ## Terraform - Infrastructure
 
