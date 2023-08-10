@@ -23,7 +23,7 @@ resource "aws_sqs_queue" "queue" {
 }
 
 ## Role API Gateway
-resource "aws_iam_role" "api" {
+resource "aws_iam_role" "gtw_role" {
   name = "coffee-api-role"
 
   assume_role_policy = <<EOF
@@ -93,7 +93,7 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "api" {
-  role       = aws_iam_role.api.name
+  role       = aws_iam_role.gtw_role.name
   policy_arn = aws_iam_policy.api.arn
 }
 
@@ -156,7 +156,7 @@ resource "aws_api_gateway_integration" "api" {
   type                    = "AWS"
   integration_http_method = "POST"
   passthrough_behavior    = "NEVER"
-  credentials             = aws_iam_role.api.arn
+  credentials             = aws_iam_role.gtw_role.arn
   uri                     = "arn:aws:apigateway:${var.region}:sqs:path/${aws_sqs_queue.queue.name}"
 
   request_parameters = {
@@ -205,6 +205,39 @@ resource "aws_api_gateway_deployment" "api" {
 
 
 ## Permissions Lambda
+# Lambda function policy
+resource "aws_iam_policy" "lambda_policy" {
+  name        = "lambda-policy"
+  description = "lambda-policy"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "sqs:ReceiveMessage",
+        "sqs:DeleteMessage",
+        "sqs:GetQueueAttributes"
+      ],
+      "Effect": "Allow",
+      "Resource": "${aws_sqs_queue.queue.arn}"
+    },
+    {
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
+# Lambda function role
 resource "aws_iam_role" "lambda_role" {
   name = "lambda-role"
 
@@ -218,6 +251,11 @@ resource "aws_iam_role" "lambda_role" {
       }
     }]
   })
+}
+
+resource "aws_iam_role_policy_attachment" "terraform_lambda_iam_policy_basic_execution" {
+  role       = aws_iam_role.lambda_role.id
+  policy_arn = aws_iam_policy.lambda_policy.arn
 }
 
 data "archive_file" "function_archive" {
@@ -238,4 +276,12 @@ resource "aws_lambda_function" "function" {
   source_code_hash = data.archive_file.function_archive.output_base64sha256
 
   runtime = "go1.x"
+}
+
+# Event source from SQS
+resource "aws_lambda_event_source_mapping" "event_source_mapping" {
+  event_source_arn = aws_sqs_queue.queue.arn
+  enabled          = true
+  function_name    = aws_lambda_function.function.arn
+  batch_size       = 3
 }
