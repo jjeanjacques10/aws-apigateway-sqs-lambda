@@ -41,7 +41,7 @@ Follow these steps to provision the infrastructure using Terraform:
 
 ## Request Example
 
-``` json
+``` bash
 curl --request POST \
   --url https://<api-gateway>.execute-api.us-east-1.amazonaws.com/coffee \
   --data '{
