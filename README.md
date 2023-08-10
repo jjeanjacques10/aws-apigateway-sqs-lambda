@@ -2,6 +2,8 @@
 
 Project to test integration between API Gateway + SQS + Lambda
 
+![Diagram](./files/diagram.png)
+
 ## Resources
 
 - API Gateway
